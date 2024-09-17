@@ -10,16 +10,27 @@ describe("SupplyChain", function () {
 
         const SupplyChainFactory = await ethers.getContractFactory("SupplyChain");
         supplyChain = await SupplyChainFactory.deploy(producer.address, transporter.address, retailer.address);
-        await supplyChain.waitForDeployment();  
+        await supplyChain.waitForDeployment();  // Certo para novas versões do ethers
     });
 
     it("Should create and update a product", async function () {
-        // Gerar o ID do produto usando o hash
-        const productId = ethers.utils.keccak256(ethers.utils.defaultAbiCoder.encode(["string", "string"], ["Product1", "Origin1"]));
-        
-        // Adicionar produto
+
+
         await supplyChain.connect(producer).addProduct("Product1", "Origin1", "Details1");
-        const product = await supplyChain.getProduct(productId);
+
+        const name = "Product1";
+        const origin = "Origin1";
+
+        const productId = await supplyChain.generateProductId(name, origin);
+        console.log("Generated productId (hex):", productId);
+
+        // const coder = new ethers.AbiCoder();
+        // const message = coder.encode(["string", "string"], ["Product1", "Origin1"]);
+        // const productId = ethers.keccak256(message);
+
+        const product = await supplyChain.getProduct(productId); 
+
+        console.log("Product from contract:", product);
 
         expect(product.name).to.equal("Product1");
         expect(product.currentLocation).to.equal("");
@@ -38,9 +49,15 @@ describe("SupplyChain", function () {
     });
 
     it("Should update the current location of a product", async function () {
-        // Gerar o ID do produto usando o hash
-        const productId = ethers.utils.keccak256(ethers.utils.defaultAbiCoder.encode(["string", "string"], ["Product1", "Origin1"]));
-        
+        // Gerar o ID do produto usando uma hash simples
+        // const coder = new ethers.AbiCoder();
+        // const message = coder.encode(["string", "string"], ["Product1", "Origin1"]);
+        // const productId = ethers.keccak256(message);
+        const name = "Product1";
+        const origin = "Origin1";
+
+        const productId = await supplyChain.generateProductId(name, origin);
+
         await supplyChain.connect(transporter).updateCurrentLocation(productId, "NewLocation");
         const product = await supplyChain.getProduct(productId);
 

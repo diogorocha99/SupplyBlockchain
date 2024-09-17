@@ -52,7 +52,7 @@ contract SupplyChain {
         retailer = _retailer;
     }
 
-    function generateProductId(string memory _name, string memory _origin) internal pure returns (bytes32) {
+    function generateProductId(string memory _name, string memory _origin) public pure returns (bytes32) {
         return keccak256(abi.encodePacked(_name, _origin));
     }
 
